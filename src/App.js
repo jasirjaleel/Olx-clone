@@ -10,6 +10,8 @@ import Signup from './Pages/Signup'
 import LoginPage from './Pages/Login';
 import Home from './Pages/Home';
 import Create from './Pages/Create'
+import ViewPost from './Pages/ViewPost'
+import Post from './store/PostContext';
 
 function App() {
   const {setUser} = useContext(AuthContext);
@@ -31,14 +33,17 @@ function App() {
   
   return (
     <div>
-      <Router>
-        <Routes>
-          <Route path='/' element={<Home></Home>}></Route>    
-          <Route path='/signup' element={<Signup/>}/>
-          <Route path='/login' element={<LoginPage/>}/>
-          <Route path='/create' element={<Create/>}/>
-        </Routes>
-      </Router>
+      <Post>
+        <Router>
+          <Routes>
+            <Route path='/' element={<Home></Home>}></Route>    
+            <Route path='/signup' element={<Signup/>}/>
+            <Route path='/login' element={<LoginPage/>}/>
+            <Route path='/create' element={<Create/>}/>
+            <Route path='/post' element={<ViewPost/>}/>
+          </Routes>
+        </Router>
+      </Post>
     </div>
   );
 }

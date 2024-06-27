@@ -2,13 +2,18 @@ import React, { Fragment, useContext, useState } from "react";
 import "./Create.css";
 import Header from "../Header/Header";
 import {AuthContext, FirebaseContext} from '../../store/Context'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { addDoc, collection } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+
 const Create = () => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState(null);
-  const {storage} = useContext(FirebaseContext)
+  const {db,storage} = useContext(FirebaseContext)
   const {user} = useContext(AuthContext)
+  const navigate = useNavigate()
   const handleChange = (e) => {
     if (e.target.files[0]) {
       setImage(e.target.files[0]);
@@ -21,16 +26,26 @@ const Create = () => {
     }
     try {
       const uniqueName = `${Date.now()}-${image.name}`;
-      const storageRef = storage.ref();
-      const imageRef = storageRef.child(uniqueName);
-      await imageRef.put(image);
+      const storageRef = ref(storage, `images/${uniqueName}`);  
+      await uploadBytes(storageRef, image); 
       console.log("Image uploaded successfully");
+          
+        const imageUrl = await getDownloadURL(storageRef);
+        console.log("Image URL:", imageUrl);
         
-        // Optionally, get the download URL to save in your database or use in your application
-      const imageUrl = await imageRef.getDownloadURL();
-      console.log("Image URL:", imageUrl);
+        await addDoc(collection(db, 'products'), {
+          productName: name,  
+          category: category,
+          price: price,
+          imageUrl: imageUrl, 
+          createdBy: user.uid,  
+          createdAt: new Date() 
+        });
+        navigate('/')
+  
+        console.log("Product added to Firestore");
+  
       
-      // Now you can proceed with saving other data to Firestore or performing other actions
     } catch (error) {
       console.error("Error uploading image:", error);
     }
@@ -82,8 +97,7 @@ const Create = () => {
             <br />
             <input onChange={handleChange} type="file" />
             <br />
-            <button onClick={handleSubmit} className="uploadBtn">upload and Submit</button>
-          
+            <button onClick={handleSubmit} className="uploadBtn">Upload and Submit</button>         
         </div>
       </card>
     </Fragment>
